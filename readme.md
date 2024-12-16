@@ -1,7 +1,27 @@
 # Automated Announcement System Documentation
 
 ## Overview
-This Python script manages an automated announcement system for a venue with inflatable attractions. It handles timed announcements for wristband expiration, rules, and advertisements using text-to-speech technology.
+This Python script manages an automated announcement system for a venue with inflatable attractions. It handles timed announcements for wristband expiration, rules, and advertisements using text-to-speech technology. The system includes both a core announcement engine and a web-based configuration interface.
+
+## System Components
+
+### 1. Announcement Engine (announcer.py)
+- Handles the core announcement functionality
+- Manages scheduled announcements
+- Interfaces with the database
+- Controls text-to-speech operations
+
+### 2. Web Configuration Interface (settings.py)
+- Provides a browser-based configuration interface
+- Allows real-time configuration updates
+- Supports immediate configuration changes without system restart
+- Features a modern, dark-themed user interface
+
+### 3. Configuration Template (config.html)
+- Responsive web interface for system configuration
+- Real-time form validation
+- Modern dark mode design
+- Floating save button for easy access
 
 ## Core Features
 
@@ -23,181 +43,166 @@ This Python script manages an automated announcement system for a venue with inf
 - Supports multiple audio formats (MP3 and WAV)
 - Includes audio format conversion capabilities using ffmpeg
 
-## Technical Components
+### Web Interface Features
+- Real-time configuration updates
+- Live preview of changes
+- Secure configuration storage
+- Automatic service restart on save
+- User-friendly form validation
 
-### Configuration Management
-The script uses an INI-style configuration file with sections for:
-- Database connection settings
-- Announcement schedules
-- Message templates
-- TTS settings
-- Rules content
-- Advertisement messages
+## Configuration Management
 
-### Audio Processing
-- Supports dynamic audio synthesis using Edge TTS
-- Handles audio format conversion using ffmpeg
-- Uses mpg123 for audio playback
-- Manages temporary file creation and cleanup
+### Web Interface Sections
+1. Database Configuration
+   - Server address
+   - Database name
+   - Username
+   - Password
 
-### Logging System
-- Comprehensive logging with both file and console output
-- Debug-level logging available
-- Tracks important events, errors, and system status
+2. Announcement Times
+   - Time schedule editor
+   - Support for multiple announcement types
+   - Format: HH:MM = type
 
-## Main Process Flow
+3. Announcement Templates
+   - 55-minute warning template
+   - Hour announcement template
+   - Rules announcement template
+   - Advertisement template
 
-1. Load configuration from INI file
-2. Enter main loop:
-   - Calculate next announcement time
-   - Sleep until next scheduled announcement
-   - Fetch color information from database (if needed)
-   - Generate announcement audio using TTS
-   - Play announcement
-   - Clean up temporary files
+4. TTS Configuration
+   - Voice ID selection
+   - Output format settings
 
-## Error Handling
-- Robust error handling for database connections
-- Audio synthesis and playback error recovery
-- Configuration validation
-- Temporary file management
-
-## Dependencies
-
-### Required Python Packages
-- edge_tts: Text-to-speech synthesis
-- pymssql: Microsoft SQL Server connectivity
-- asyncio: Asynchronous I/O support
-- datetime: Date and time handling
-- logging: System logging
-- tempfile: Temporary file management
-- pathlib: File path operations
-- typing: Type hints
-
-### System Requirements
-- Python 3.x
-- Microsoft SQL Server database
-- ffmpeg installation
-- mpg123 installation
-- Network connectivity for database access
-- Audio output capabilities
-
-## Configuration File Structure
-
+### Configuration File Structure
 ```ini
 [database]
-# Database connection settings
-server = [REDACTED_IP]
-database = [REDACTED_DB_NAME]
-username = [REDACTED_USER]
-password = [REDACTED_PASSWORD]
+server = 192.168.1.2
+database = CenterEdge
+username = Tech
+password = yourpassword
 
 [times]
-# Announcement times in 24-hour format (HH:MM) mapped to announcement types
-# Example: 08:55 = :55 indicates an announcement type for 55 minutes past the hour
 10:55 = :55
 11:00 = hour
-11:55 = :55
-12:00 = hour
-12:55 = :55
-13:00 = hour
-13:55 = :55
-14:00 = hour
-14:55 = :55
-15:00 = hour
-15:55 = :55
-16:00 = hour
-16:55 = :55
-17:00 = hour
-17:55 = :55
-18:00 = hour
-# Add more times as needed
+# Additional times...
 
 [announcements]
-# Announcement templates using placeholders {time} and {color}
-# {time} will be replaced with the scheduled time
-# {color} will be replaced with the color fetched from the database
-fiftyfive = "Attention inflate-a-park guests: The time is now {time}, {color} wristbands will be expiring in five minutes!"
-hour = "Attention inflate-a-park guests: The time is now {time}, {color} wristbands have expired. Please exit the inflate-a-park at this time."
-
-[rules]
-# Rules announcement content
-# This will be read when a rules announcement is scheduled
-rules_content = "Attention inflate-a-park guests! Please remember our safety rules: 1. No running in the inflate-a-park. 2. Follow staff instructions at all times. 3. One person per slide at a time. 4. No food, drinks, or shoes in the inflatables. 5. Adult supervision is required for children under 12."
-
-[ad]
-# Advertisement message content
-# This will be read when an advertisement announcement is scheduled
-ad_message = "Looking for more bounce time? Visit our front desk to purchase additional time on your wristband! We also offer party packages for birthdays and special events. Ask our staff for details!"
+fiftyfive = Attention inflate-a-park guests: The time is now {time}, {color} wristbands will be expiring in five minutes!
+hour = Attention inflate-a-park guests: The time is now {time}, {color} wristbands have expired.
+rules = Attention! Here are the rules: {rules_content}
+ad = Announcement! {ad_message}
 
 [tts]
-# Text-to-Speech (TTS) configuration
-# voice_id corresponds to the desired Edge TTS voice
-# output_format determines the audio file format ('wav' or 'mp3')
 voice_id = en-US-AndrewMultilingualNeural
-output_format = wav
 ```
 
-## Function Reference
+## Installation and Setup
 
-### Core Functions
+### Prerequisites
+- Python 3.x
+- Required Python packages:
+  ```bash
+  pip install flask edge-tts pymssql
+  ```
+- System requirements:
+  - ffmpeg
+  - mpg123
+  - Network connectivity
+  - Audio output capabilities
 
-#### `load_config(config_path: str) -> Config`
-Loads and validates configuration from the specified INI file.
+### Directory Structure
+```
+/your_installation_directory/
+├── announcer.py
+├── settings.py
+├── config.ini
+└── templates/
+    └── config.html
+```
 
-#### `synthesize_speech_async(text: str, voice_id: str, output_path: str) -> bool`
-Asynchronously generates speech audio from text using Edge TTS.
+### Starting the System
+1. Start the web interface:
+   ```bash
+   python settings.py
+   ```
+2. Access the configuration interface:
+   ```
+   http://localhost:5000
+   ```
 
-#### `play_sound(sound_path: str, output_format: str) -> bool`
-Plays the generated announcement audio file.
+## Web Interface Usage
 
-#### `get_color_message_from_db(config: Config) -> Optional[str]`
-Retrieves current wristband color information from the database.
+### Making Configuration Changes
+1. Navigate to the web interface
+2. Modify desired settings
+3. Click the floating "Save Configuration" button
+4. Wait for confirmation of successful save
 
-#### `calculate_next_announcement(times: Dict[str, str], current_time: datetime.datetime) -> Optional[Tuple[datetime.datetime, str]]`
-Determines the next scheduled announcement time and type.
+### Configuration Sections
+1. **Database Settings**
+   - Configure database connection parameters
+   - All fields are required
 
-### Utility Functions
+2. **Announcement Times**
+   - Add/remove announcement times
+   - Format: HH:MM = type
+   - Supported types: :55, hour, rules, ad
 
-#### `convert_to_12hr_format(time_str: str) -> str`
-Converts 24-hour time format to 12-hour format with AM/PM.
+3. **Announcement Templates**
+   - Edit message templates
+   - No quotes required around messages
+   - Supports placeholders: {time}, {color}
 
-#### `convert_audio_format(input_path: str, output_path: str, target_format: str) -> bool`
-Converts audio files between different formats using ffmpeg.
+4. **TTS Settings**
+   - Configure voice settings
+   - Select voice ID
 
-## Error Logging
+## Technical Details
 
-The system maintains detailed logs with the following information:
-- Timestamp
-- Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- Event description
-- Error details and stack traces when applicable
+### Threading Model
+- Main announcement thread runs as daemon
+- Web interface runs in main thread
+- Configuration changes trigger clean restart
+- Thread synchronization via Events
 
-Logs are written to both:
-- Console output (stdout)
-- Log file (announcement_script.log)
+### Configuration Handling
+- Real-time configuration file parsing
+- Clean shutdown and restart on changes
+- Quote-aware string handling
+- Automatic format validation
 
-## Maintenance and Troubleshooting
+### Security Considerations
+- Password fields are masked
+- Form validation prevents injection
+- Configuration file permissions should be restricted
+
+## Troubleshooting
 
 ### Common Issues
-1. Database Connection Failures
-   - Check network connectivity
-   - Verify database credentials
-   - Confirm SQL Server is running
-
-2. Audio Playback Issues
-   - Verify ffmpeg installation
-   - Check mpg123 installation
-   - Confirm audio output device availability
-
-3. Configuration Problems
-   - Validate INI file syntax
+1. Configuration Not Updating
    - Check file permissions
-   - Verify all required sections are present
+   - Verify save operation success
+   - Check logs for errors
 
-### Best Practices
-1. Regular monitoring of log files
-2. Periodic testing of database connectivity
-3. Validation of announcement schedules
-4. Regular backup of configuration files
-5. Testing of audio output quality
+2. Web Interface Not Accessible
+   - Verify port 5000 is available
+   - Check Python process is running
+   - Confirm network connectivity
+
+3. Announcements Not Playing
+   - Check audio device configuration
+   - Verify database connectivity
+   - Check log files for errors
+
+### Logging
+- Web interface logs to console/debug mode
+- Announcement system logs to announcement_script.log
+- Both components log error conditions
+
+## Best Practices
+1. Regular backup of configuration
+2. Monitor log files
+3. Test configuration changes during non-peak hours
+4. Maintain secure database credentials
+5. Regular system updates
