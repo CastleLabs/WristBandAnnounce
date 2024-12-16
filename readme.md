@@ -86,24 +86,56 @@ The script uses an INI-style configuration file with sections for:
 
 ```ini
 [database]
-server = <server_address>
-database = <database_name>
-username = <username>
-password = <password>
+# Database connection settings
+server = [REDACTED_IP]
+database = [REDACTED_DB_NAME]
+username = [REDACTED_USER]
+password = [REDACTED_PASSWORD]
 
 [times]
-# Announcement times in 24-hour format
+# Announcement times in 24-hour format (HH:MM) mapped to announcement types
+# Example: 08:55 = :55 indicates an announcement type for 55 minutes past the hour
 10:55 = :55
 11:00 = hour
-# ... additional times
+11:55 = :55
+12:00 = hour
+12:55 = :55
+13:00 = hour
+13:55 = :55
+14:00 = hour
+14:55 = :55
+15:00 = hour
+15:55 = :55
+16:00 = hour
+16:55 = :55
+17:00 = hour
+17:55 = :55
+18:00 = hour
+# Add more times as needed
 
 [announcements]
+# Announcement templates using placeholders {time} and {color}
+# {time} will be replaced with the scheduled time
+# {color} will be replaced with the color fetched from the database
 fiftyfive = "Attention inflate-a-park guests: The time is now {time}, {color} wristbands will be expiring in five minutes!"
 hour = "Attention inflate-a-park guests: The time is now {time}, {color} wristbands have expired. Please exit the inflate-a-park at this time."
 
+[rules]
+# Rules announcement content
+# This will be read when a rules announcement is scheduled
+rules_content = "Attention inflate-a-park guests! Please remember our safety rules: 1. No running in the inflate-a-park. 2. Follow staff instructions at all times. 3. One person per slide at a time. 4. No food, drinks, or shoes in the inflatables. 5. Adult supervision is required for children under 12."
+
+[ad]
+# Advertisement message content
+# This will be read when an advertisement announcement is scheduled
+ad_message = "Looking for more bounce time? Visit our front desk to purchase additional time on your wristband! We also offer party packages for birthdays and special events. Ask our staff for details!"
+
 [tts]
+# Text-to-Speech (TTS) configuration
+# voice_id corresponds to the desired Edge TTS voice
+# output_format determines the audio file format ('wav' or 'mp3')
 voice_id = en-US-AndrewMultilingualNeural
-output_format = mp3
+output_format = wav
 ```
 
 ## Function Reference
