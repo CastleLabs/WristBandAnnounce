@@ -1,268 +1,439 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Announcement System Configuration</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
         :root {
-            --primary-bg: #1a1a1a;
-            --secondary-bg: #2d2d2d;
-            --text-color: #e0e0e0;
-            --border-color: #404040;
-            --input-bg: #333333;
-            --input-focus: #404040;
-            --accent-color: #4f46e5;
-            --accent-hover: #4338ca;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 1rem;
+            --space-4: 1.5rem;
+            --space-5: 2rem;
+            --transition: 0.2s ease-in-out;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            background-color: var(--primary-bg);
-            color: var(--text-color);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            padding: var(--space-4);
         }
 
         .container {
             max-width: 1200px;
-            padding: 2rem;
+            margin: 0 auto;
+            padding: var(--space-4);
         }
 
-        .form-section {
-            background-color: var(--secondary-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s, box-shadow 0.2s;
+        .header {
+            margin-bottom: var(--space-5);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: var(--space-3);
         }
 
-        .form-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        h1 {
-            color: var(--text-color);
+        .header h1 {
+            font-size: 2rem;
             font-weight: 600;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-color);
+            color: var(--text);
+            margin: 0;
         }
 
-        h3 {
-            color: var(--text-color);
-            font-weight: 500;
-            margin-bottom: 1.5rem;
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            border: 1px solid var(--border);
+            transition: transform var(--transition);
+        }
+
+        .card h2 {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
             font-size: 1.5rem;
+            margin-bottom: var(--space-4);
         }
 
-        .form-control, .form-select {
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            border-radius: 8px;
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background-color: var(--input-focus);
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25);
-            color: var(--text-color);
+        .form-group {
+            margin-bottom: var(--space-4);
         }
 
         .form-label {
-            color: var(--text-color);
+            display: block;
+            margin-bottom: var(--space-2);
+            color: var(--text);
             font-weight: 500;
-            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: var(--space-2) var(--space-3);
+            background-color: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        .schedule-editor {
+            background-color: var(--surface);
+            border-radius: 8px;
+            padding: var(--space-3);
+        }
+
+        .time-input-row {
+            display: flex;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        .time-picker {
+            width: 150px;
+        }
+
+        .type-select {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
         .btn-primary {
-            background-color: var(--accent-color);
-            border: none;
-            padding: 0.75rem 2rem;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            background-color: var(--primary);
+            color: white;
         }
 
         .btn-primary:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-1px);
+            background-color: var(--primary-dark);
         }
 
-        .alert {
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 2rem;
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3);
+            background-color: var(--surface-hover);
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            transition: transform var(--transition);
+        }
+
+        .schedule-item:hover {
+            transform: translateX(4px);
+            background-color: var(--surface);
+        }
+
+        .schedule-item .time {
+            font-weight: 500;
+            min-width: 120px;
+        }
+
+        .schedule-item .type {
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .schedule-item .actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .btn-icon {
+            padding: var(--space-2);
+            background: none;
             border: none;
-        }
-
-        .alert-success {
-            background-color: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .alert-error {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        textarea.form-control {
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        .form-text {
-            color: #9ca3af;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--secondary-bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
             border-radius: 4px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-color);
+        .btn-icon:hover {
+            color: var(--danger);
+            background-color: rgba(220, 38, 38, 0.1);
         }
 
-        /* Floating save button */
-        .save-button-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
+        .schedule-item[data-type=":55"] {
+            border-left-color: #2563eb;
         }
 
-        .save-button {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        .schedule-item[data-type="hour"] {
+            border-left-color: #7c3aed;
         }
 
-        .save-button:hover {
-            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        .schedule-item[data-type="rules"] {
+            border-left-color: #059669;
+        }
+
+        .schedule-item[data-type="ad"] {
+            border-left-color: #d97706;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Announcement System Configuration</h1>
+        <header class="header">
+            <h1>Announcement System Configuration</h1>
+        </header>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <form id="configForm" method="POST" action="{{ url_for('save_config') }}">
+            <!-- Announcement Schedule -->
+            <div class="card">
+                <h2>Announcement Schedule</h2>
+                <div class="schedule-editor">
+                    <div class="time-input-row">
+                        <input type="time" class="form-control time-picker" id="newTime" value="12:00">
+                        <select class="form-control type-select" id="newType">
+                            <option value=":55">Color Warning (55min)</option>
+                            <option value="hour">Color Change</option>
+                            <option value="rules">Rules</option>
+                            <option value="ad">Advertisement</option>
+                        </select>
+                        <button type="button" class="btn btn-primary" id="addTimeBtn">Add</button>
+                    </div>
 
-        <form method="POST" action="{{ url_for('save_config') }}" class="needs-validation" novalidate>
-            <!-- Database Configuration -->
-            <div class="form-section">
-                <h3>Database Configuration</h3>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="db_server" class="form-label">Server</label>
-                        <input type="text" class="form-control" id="db_server" name="db_server" value="{{ database.server }}" required>
+                    <div class="schedule-list" id="scheduleList">
+                        <!-- Schedule items will be populated here -->
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="db_name" class="form-label">Database Name</label>
-                        <input type="text" class="form-control" id="db_name" name="db_name" value="{{ database.database }}" required>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="db_username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="db_username" name="db_username" value="{{ database.username }}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="db_password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="db_password" name="db_password" value="{{ database.password }}" required>
-                    </div>
+
+                    <!-- Hidden textarea for form submission -->
+                    <textarea class="form-control" id="times" name="times" hidden required>{{ times }}</textarea>
                 </div>
             </div>
 
-            <!-- Announcement Times -->
-            <div class="form-section">
-                <h3>Announcement Times</h3>
-                <div class="mb-3">
-                    <label for="times" class="form-label">Times (HH:MM = type)</label>
-                    <textarea class="form-control" id="times" name="times" rows="10" required>{{ times }}</textarea>
-                    <div class="form-text">Enter one time per line in format: HH:MM = type (e.g., 10:55 = :55)</div>
-                </div>
-            </div>
-
-            <!-- Announcement Templates -->
-            <div class="form-section">
-                <h3>Announcement Templates</h3>
-                <div class="mb-3">
-                    <label for="fiftyfive_template" class="form-label">55-Minute Template</label>
+            <!-- Templates -->
+            <div class="card">
+                <h2>Announcement Templates</h2>
+                <div class="form-group">
+                    <label class="form-label" for="fiftyfive_template">55-Minute Template</label>
                     <textarea class="form-control" id="fiftyfive_template" name="fiftyfive_template" rows="3" required>{{ announcements.fiftyfive }}</textarea>
                 </div>
-                <div class="mb-3">
-                    <label for="hour_template" class="form-label">Hour Template</label>
+                <div class="form-group">
+                    <label class="form-label" for="hour_template">Hour Template</label>
                     <textarea class="form-control" id="hour_template" name="hour_template" rows="3" required>{{ announcements.hour }}</textarea>
                 </div>
-                <div class="mb-3">
-                    <label for="rules_template" class="form-label">Rules Template</label>
+                <div class="form-group">
+                    <label class="form-label" for="rules_template">Rules Template</label>
                     <textarea class="form-control" id="rules_template" name="rules_template" rows="3" required>{{ announcements.rules }}</textarea>
                 </div>
-                <div class="mb-3">
-                    <label for="ad_template" class="form-label">Ad Template</label>
+                <div class="form-group">
+                    <label class="form-label" for="ad_template">Ad Template</label>
                     <textarea class="form-control" id="ad_template" name="ad_template" rows="3" required>{{ announcements.ad }}</textarea>
                 </div>
             </div>
 
-            <!-- TTS Configuration -->
-            <div class="form-section">
-                <h3>Text-to-Speech Configuration</h3>
-                <div class="mb-3">
-                    <label for="voice_id" class="form-label">Voice ID</label>
+            <!-- Voice Configuration -->
+            <div class="card">
+                <h2>Voice Configuration</h2>
+                <div class="form-group">
+                    <label class="form-label" for="voice_id">Voice ID</label>
                     <input type="text" class="form-control" id="voice_id" name="voice_id" value="{{ tts.voice_id }}" required>
                 </div>
             </div>
 
-            <!-- Floating Save Button -->
-            <div class="save-button-container">
-                <button type="submit" class="btn btn-primary save-button">Save Configuration</button>
+            <!-- Database Configuration -->
+            <div class="card">
+                <h2>Database Configuration</h2>
+                <div class="form-group">
+                    <label class="form-label" for="db_server">Server</label>
+                    <input type="text" class="form-control" id="db_server" name="db_server" value="{{ database.server }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="db_name">Database Name</label>
+                    <input type="text" class="form-control" id="db_name" name="db_name" value="{{ database.database }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="db_username">Username</label>
+                    <input type="text" class="form-control" id="db_username" name="db_username" value="{{ database.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="db_password">Password</label>
+                    <input type="password" class="form-control" id="db_password" name="db_password" value="{{ database.password }}" required>
+                </div>
             </div>
+
+            <button type="submit" class="btn btn-primary">Save Configuration</button>
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Form validation
-        (function () {
-            'use strict'
-            var forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
+        document.addEventListener('DOMContentLoaded', function() {
+            const scheduleEditor = {
+                times: new Map(),
+
+                init() {
+                    this.loadExistingTimes();
+                    this.setupEventListeners();
+                },
+
+                loadExistingTimes() {
+                    const timesTextarea = document.getElementById('times');
+                    const lines = timesTextarea.value.trim().split('\n');
+
+                    lines.forEach(line => {
+                        line = line.trim();
+                        if (line && line.includes('=')) {
+                            const [time, type] = line.split('=').map(part => part.trim());
+                            this.times.set(time, type);
+                        }
+                    });
+
+                    this.updateScheduleList();
+                },
+
+                setupEventListeners() {
+                    document.getElementById('addTimeBtn').addEventListener('click', () => {
+                        const timeInput = document.getElementById('newTime');
+                        const typeSelect = document.getElementById('newType');
+
+                        const time = timeInput.value;
+                        const type = typeSelect.value;
+
+                        if (time) {
+                            this.addTimeEntry(time, type);
+                        }
+                    });
+                },
+
+                async addTimeEntry(time, type) {
+                    // Send AJAX request to update config.ini immediately
+                    const response = await fetch('/add_time', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ time: time, type: type })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(data.message);
+                        this.times.set(time, type);
+                        this.updateScheduleList();
+                    } else {
+                        console.error('Failed to add time entry');
                     }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+                },
+
+                async deleteTimeEntry(time) {
+                    const response = await fetch('/delete_time', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ time: time })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(data.message);
+                        this.times.delete(time);
+                        this.updateScheduleList();
+                    } else {
+                        console.error('Failed to delete time entry');
+                    }
+                },
+
+                updateScheduleList() {
+                    const container = document.getElementById('scheduleList');
+                    const timesTextarea = document.getElementById('times');
+                    container.innerHTML = '';
+
+                    const sortedTimes = Array.from(this.times.entries())
+                        .sort(([timeA], [timeB]) => {
+                            const [hoursA, minsA] = timeA.split(':').map(Number);
+                            const [hoursB, minsB] = timeB.split(':').map(Number);
+                            return (hoursA * 60 + minsA) - (hoursB * 60 + minsB);
+                        });
+
+                    timesTextarea.value = sortedTimes
+                        .map(([time, type]) => `${time} = ${type}`)
+                        .join('\n');
+
+                    const typeLabels = {
+                        ':55': 'Color Warning',
+                        'hour': 'Color Change',
+                        'rules': 'Rules',
+                        'ad': 'Advertisement'
+                    };
+
+                    sortedTimes.forEach(([time, type]) => {
+                        const item = document.createElement('div');
+                        item.className = 'schedule-item';
+                        item.dataset.type = type;
+
+                        item.innerHTML = `
+                            <span class="time">${this.formatTime(time)}</span>
+                            <span class="type">${typeLabels[type] || type}</span>
+                            <div class="actions">
+                                <button type="button" class="btn-icon delete" title="Delete">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+
+                        item.querySelector('.delete').addEventListener('click', () => {
+                            this.deleteTimeEntry(time);
+                        });
+
+                        container.appendChild(item);
+                    });
+                },
+
+                formatTime(time) {
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const period = hours >= 12 ? 'PM' : 'AM';
+                    const displayHours = hours % 12 || 12;
+                    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+                }
+            };
+
+            scheduleEditor.init();
+        });
     </script>
 </body>
 </html>
