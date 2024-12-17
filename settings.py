@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import threading
 from announcer import main as announcement_main
 import os
 import logging
+import subprocess
 from typing import Dict, Any
+import json
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Change this to a secure secret key
@@ -100,19 +102,67 @@ class ConfigHandler:
             logging.error(f"Error writing config: {e}")
             raise
 
-def format_times(times: Dict[str, str]) -> str:
-    """Format times dictionary to string format."""
-    return '\n'.join(f"{time} = {announcement_type}"
-                    for time, announcement_type in sorted(times.items()))
+def restart_services():
+    """Restart only the announcer service."""
+    try:
+        subprocess.run(['sudo', 'systemctl', 'restart', 'announcer.service'], check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error restarting services: {e}")
+        return False
 
-def parse_times(times_str: str) -> Dict[str, str]:
-    """Parse times from string format to dictionary."""
-    times = {}
-    for line in times_str.strip().split('\n'):
-        if '=' in line:
-            time, announcement_type = line.split('=')
-            times[time.strip()] = announcement_type.strip()
-    return times
+@app.route('/add_time', methods=['POST'])
+def add_time():
+    """Add a new time entry to the configuration."""
+    try:
+        data = request.get_json()
+        time = data.get('time')
+        type_ = data.get('type')
+
+        if not time or not type_:
+            return jsonify({'error': 'Missing time or type'}), 400
+
+        config_handler = ConfigHandler()
+        config_handler.read_config()
+        config_handler.config['times'][time] = type_
+        config_handler.write_config()
+
+        # Restart services after adding time
+        if restart_services():
+            return jsonify({'message': 'Time added successfully'}), 200
+        else:
+            return jsonify({'error': 'Failed to restart services'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/delete_time', methods=['POST'])
+def delete_time():
+    """Delete a time entry from the configuration."""
+    try:
+        data = request.get_json()
+        time = data.get('time')
+
+        if not time:
+            return jsonify({'error': 'Missing time'}), 400
+
+        config_handler = ConfigHandler()
+        config_handler.read_config()
+
+        if time in config_handler.config['times']:
+            del config_handler.config['times'][time]
+            config_handler.write_config()
+
+            # Restart services after deleting time
+            if restart_services():
+                return jsonify({'message': 'Time deleted successfully'}), 200
+            else:
+                return jsonify({'error': 'Failed to restart services'}), 500
+        else:
+            return jsonify({'error': 'Time not found'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/')
 def index():
@@ -121,7 +171,8 @@ def index():
     config = config_handler.read_config()
 
     # Format times for display
-    times_str = format_times(config['times'])
+    times_str = '\n'.join(f"{time} = {announcement_type}"
+                         for time, announcement_type in sorted(config['times'].items()))
 
     return render_template('config.html',
                          database=config['database'],
@@ -145,7 +196,10 @@ def save_config():
         }
 
         # Times section
-        config['times'] = parse_times(request.form['times'])
+        config['times'] = {k.strip(): v.strip()
+                         for k, v in [line.split('=')
+                         for line in request.form['times'].strip().split('\n')
+                         if '=' in line]}
 
         # Announcements section
         config['announcements'] = {
@@ -164,44 +218,17 @@ def save_config():
         config_handler.config = config
         config_handler.write_config()
 
-        # Restart announcement system
-        restart_announcement_system()
+        # Only restart the announcer service
+        if restart_services():
+            flash('Configuration saved and announcer service restarted successfully!', 'success')
+        else:
+            flash('Configuration saved but service restart failed. Please restart manually.', 'error')
 
-        flash('Configuration saved successfully!', 'success')
         return redirect(url_for('index'))
 
     except Exception as e:
         flash(f'Error saving configuration: {str(e)}', 'error')
         return redirect(url_for('index'))
 
-def restart_announcement_system():
-    """Restart the announcement system thread."""
-    global announcement_thread
-
-    # Add event to signal thread shutdown
-    if not hasattr(announcement_main, 'shutdown_event'):
-        announcement_main.shutdown_event = threading.Event()
-
-    # Stop existing thread if running
-    if announcement_thread and announcement_thread.is_alive():
-        logging.info("Stopping existing announcement thread...")
-        announcement_main.shutdown_event.set()  # Signal the thread to stop
-        announcement_thread.join(timeout=5)     # Wait up to 5 seconds for thread to stop
-        if announcement_thread.is_alive():
-            logging.warning("Thread did not stop gracefully, forcing restart...")
-
-    # Reset shutdown event
-    announcement_main.shutdown_event.clear()
-
-    # Start new thread
-    logging.info("Starting new announcement thread...")
-    announcement_thread = threading.Thread(target=announcement_main, daemon=True)
-    announcement_thread.start()
-
 if __name__ == '__main__':
-    # Start the announcement system in a separate thread
-    announcement_thread = threading.Thread(target=announcement_main, daemon=True)
-    announcement_thread.start()
-
-    # Run the Flask application
     app.run(host='0.0.0.0', port=5000, debug=True)
