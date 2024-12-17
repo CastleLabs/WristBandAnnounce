@@ -1,27 +1,30 @@
 # Automated Announcement System Documentation
 
 ## Overview
-This Python script manages an automated announcement system for a venue with inflatable attractions. It handles timed announcements for wristband expiration, rules, and advertisements using text-to-speech technology. The system includes both a core announcement engine and a web-based configuration interface.
+This Python script manages an automated announcement system for a venue with inflatable attractions. It handles timed announcements for wristband expiration, rules, and advertisements using text-to-speech technology. The system runs as systemd services, providing reliable operation and automatic restart capabilities.
 
 ## System Components
 
-### 1. Announcement Engine (announcer.py)
+### 1. Announcement Engine (announcer.service)
+- Runs as a systemd service
 - Handles the core announcement functionality
 - Manages scheduled announcements
 - Interfaces with the database
 - Controls text-to-speech operations
 
-### 2. Web Configuration Interface (settings.py)
+### 2. Web Configuration Interface (settings.service)
+- Runs as a systemd service
 - Provides a browser-based configuration interface
 - Allows real-time configuration updates
-- Supports immediate configuration changes without system restart
+- Automatically restarts announcer service when changes are made
 - Features a modern, dark-themed user interface
 
 ### 3. Configuration Template (config.html)
 - Responsive web interface for system configuration
 - Real-time form validation
 - Modern dark mode design
-- Floating save button for easy access
+- Color-coded announcement types
+- Dynamic schedule management
 
 ## Core Features
 
@@ -32,88 +35,109 @@ This Python script manages an automated announcement system for a venue with inf
   - Expiration announcements (hour announcements)
   - Rules announcements
   - Advertisement messages
+- Automatic service restart ensures immediate schedule updates
 
 ### Database Integration
 - Connects to a Microsoft SQL Server database
 - Retrieves color-coded wristband information
 - Uses a complex query to determine current and upcoming wristband colors
+- Maintains persistent database connection with error handling
 
 ### Text-to-Speech Capabilities
 - Uses Microsoft Edge TTS for voice synthesis
-- Supports multiple audio formats (MP3 and WAV)
-- Includes audio format conversion capabilities using ffmpeg
+- Supports MP3 audio format
+- Includes automatic file cleanup after playback
+- Handles multiple concurrent announcements
 
 ### Web Interface Features
-- Real-time configuration updates
-- Live preview of changes
+- Immediate configuration updates
+- Service auto-restart on changes
+- Color-coded announcement types
+- Real-time schedule management
 - Secure configuration storage
-- Automatic service restart on save
-- User-friendly form validation
-
-## Configuration Management
-
-### Web Interface Sections
-1. Database Configuration
-   - Server address
-   - Database name
-   - Username
-   - Password
-
-2. Announcement Times
-   - Time schedule editor
-   - Support for multiple announcement types
-   - Format: HH:MM = type
-
-3. Announcement Templates
-   - 55-minute warning template
-   - Hour announcement template
-   - Rules announcement template
-   - Advertisement template
-
-4. TTS Configuration
-   - Voice ID selection
-   - Output format settings
-
-### Configuration File Structure
-```ini
-[database]
-server = 192.168.1.2
-database = CenterEdge
-username = Tech
-password = yourpassword
-
-[times]
-10:55 = :55
-11:00 = hour
-# Additional times...
-
-[announcements]
-fiftyfive = Attention inflate-a-park guests: The time is now {time}, {color} wristbands will be expiring in five minutes!
-hour = Attention inflate-a-park guests: The time is now {time}, {color} wristbands have expired.
-rules = Attention! Here are the rules: {rules_content}
-ad = Announcement! {ad_message}
-
-[tts]
-voice_id = en-US-AndrewMultilingualNeural
-```
 
 ## Installation and Setup
 
 ### Prerequisites
+- Raspberry Pi OS or similar Linux system
 - Python 3.x
 - Required Python packages:
   ```bash
-  pip install flask edge-tts pymssql
+  pip3 install flask edge-tts pymssql
   ```
 - System requirements:
-  - ffmpeg
-  - mpg123
-  - Network connectivity
-  - Audio output capabilities
+  ```bash
+  sudo apt-get install mpg123 ffmpeg
+  ```
+
+### Service Setup
+1. Create service files:
+```bash
+sudo nano /etc/systemd/system/announcer.service
+sudo nano /etc/systemd/system/settings.service
+```
+
+2. Configure services:
+```ini
+# announcer.service
+[Unit]
+Description=Wristband Announcer Service
+After=network.target
+
+[Service]
+Type=simple
+User=tech
+Group=tech
+WorkingDirectory=/home/tech
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/tech/announcer.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```ini
+# settings.service
+[Unit]
+Description=Wristband Settings Web Interface
+After=network.target
+
+[Service]
+Type=simple
+User=tech
+Group=tech
+WorkingDirectory=/home/tech
+Environment=FLASK_APP=settings.py
+Environment=FLASK_ENV=production
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/tech/settings.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Set up permissions:
+```bash
+sudo visudo -f /etc/sudoers.d/announcer
+```
+Add:
+```
+tech ALL=(ALL) NOPASSWD: /bin/systemctl restart announcer.service
+```
+
+4. Enable and start services:
+```bash
+sudo systemctl enable announcer.service settings.service
+sudo systemctl start announcer.service settings.service
+```
 
 ### Directory Structure
 ```
-/your_installation_directory/
+/home/tech/
 ├── announcer.py
 ├── settings.py
 ├── config.ini
@@ -121,88 +145,68 @@ voice_id = en-US-AndrewMultilingualNeural
     └── config.html
 ```
 
-### Starting the System
-1. Start the web interface:
-   ```bash
-   python settings.py
-   ```
-2. Access the configuration interface:
-   ```
-   http://localhost:5000
-   ```
+## Service Management
+
+### Common Commands
+```bash
+# Check service status
+sudo systemctl status announcer.service
+sudo systemctl status settings.service
+
+# Restart services
+sudo systemctl restart announcer.service
+sudo systemctl restart settings.service
+
+# View logs
+sudo journalctl -u announcer.service -f
+sudo journalctl -u settings.service -f
+```
 
 ## Web Interface Usage
 
 ### Making Configuration Changes
-1. Navigate to the web interface
-2. Modify desired settings
-3. Click the floating "Save Configuration" button
-4. Wait for confirmation of successful save
+1. Access the web interface at `http://your-pi-ip:5000`
+2. Changes are applied immediately upon saving
+3. Announcer service automatically restarts to pick up changes
+4. Color-coded schedule items for easy identification
 
-### Configuration Sections
-1. **Database Settings**
-   - Configure database connection parameters
-   - All fields are required
-
-2. **Announcement Times**
-   - Add/remove announcement times
-   - Format: HH:MM = type
-   - Supported types: :55, hour, rules, ad
-
-3. **Announcement Templates**
-   - Edit message templates
-   - No quotes required around messages
-   - Supports placeholders: {time}, {color}
-
-4. **TTS Settings**
-   - Configure voice settings
-   - Select voice ID
-
-## Technical Details
-
-### Threading Model
-- Main announcement thread runs as daemon
-- Web interface runs in main thread
-- Configuration changes trigger clean restart
-- Thread synchronization via Events
-
-### Configuration Handling
-- Real-time configuration file parsing
-- Clean shutdown and restart on changes
-- Quote-aware string handling
-- Automatic format validation
-
-### Security Considerations
-- Password fields are masked
-- Form validation prevents injection
-- Configuration file permissions should be restricted
+### Schedule Management
+- Add announcements using the time picker and type selector
+- Delete announcements with the X button
+- Times automatically sort chronologically
+- Color-coded by announcement type:
+  - Color Warning (:55) - Blue
+  - Color Change (hour) - Purple
+  - Rules - Green
+  - Advertisement - Orange
 
 ## Troubleshooting
 
 ### Common Issues
-1. Configuration Not Updating
-   - Check file permissions
-   - Verify save operation success
-   - Check logs for errors
+1. Service Not Starting
+   - Check service status with systemctl
+   - Review journal logs
+   - Verify file permissions
 
 2. Web Interface Not Accessible
-   - Verify port 5000 is available
-   - Check Python process is running
-   - Confirm network connectivity
+   - Confirm settings service is running
+   - Check network connectivity
+   - Verify port 5000 is not blocked
 
 3. Announcements Not Playing
    - Check audio device configuration
    - Verify database connectivity
-   - Check log files for errors
+   - Review announcer service logs
 
 ### Logging
-- Web interface logs to console/debug mode
-- Announcement system logs to announcement_script.log
-- Both components log error conditions
+- Services log to systemd journal
+- Access logs with journalctl
+- Each service has separate log stream
 
 ## Best Practices
-1. Regular backup of configuration
-2. Monitor log files
-3. Test configuration changes during non-peak hours
-4. Maintain secure database credentials
+1. Regular monitoring of service status
+2. Check logs for any errors
+3. Test new announcements during quiet periods
+4. Keep database credentials secure
 5. Regular system updates
+6. Backup config.ini regularly
