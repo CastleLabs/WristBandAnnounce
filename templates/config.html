@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcement System Configuration</title>
+    <!-- Normalize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS file located in the static directory -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>Announcement System Configuration</h1>
+                <div id="clock" class="clock">Loading...</div>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Upcoming Announcements Card -->
+        <div class="card" id="upcomingCard">
+            <h2>
+                Upcoming Announcements
+                <span class="toggle-icon">▼</span>
+            </h2>
+            <div class="card-content">
+                <div class="upcoming-list" id="upcomingList">
+                    <div class="upcoming-item">
+                        <span class="type">Loading announcements...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instant Announcement Card -->
+        <div class="card" id="instantCard">
+            <h2>
+                Instant Announcement
+                <span class="toggle-icon">▼</span>
+            </h2>
+            <div class="card-content">
+                <div class="form-group">
+                    <label class="form-label" for="instantText">Announcement Text</label>
+                    <textarea class="form-control" id="instantText" rows="3" placeholder="Enter announcement text..."></textarea>
+                </div>
+                <button type="button" class="btn btn-primary" id="playInstantBtn">Play Announcement</button>
+                <span id="instantStatus" class="status-message"></span>
+            </div>
+        </div>
+
+        <!-- Main Configuration Form -->
+        <form id="configForm" method="POST" action="{{ url_for('save_config') }}">
+            <!-- Announcement Schedule -->
+            <div class="card">
+                <h2>
+                    Announcement Schedule
+                    <span class="toggle-icon">▼</span>
+                </h2>
+                <div class="card-content">
+                    <div class="schedule-editor">
+                        <div class="time-input-row">
+                            <input type="time" class="form-control time-picker" id="newTime" value="12:00">
+                            <select class="form-control type-select" id="newType">
+                                <option value=":55">Color Warning (55min)</option>
+                                <option value="hour">Color Change</option>
+                                <option value="rules">Rules</option>
+                                <option value="ad">Advertisement</option>
+                            </select>
+                            <button type="button" class="btn btn-primary" id="addTimeBtn">Add</button>
+                        </div>
+                        <div class="schedule-list" id="scheduleList"></div>
+                        <textarea class="form-control" id="times" name="times" hidden required>{{ times }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates -->
+            <div class="card">
+                <h2>
+                    Announcement Templates
+                    <span class="toggle-icon">▼</span>
+                </h2>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label class="form-label" for="fiftyfive_template">55-Minute Template</label>
+                        <textarea class="form-control" id="fiftyfive_template" name="fiftyfive_template" rows="3" required>{{ announcements.fiftyfive }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="hour_template">Hour Template</label>
+                        <textarea class="form-control" id="hour_template" name="hour_template" rows="3" required>{{ announcements.hour }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="rules_template">Rules Template</label>
+                        <textarea class="form-control" id="rules_template" name="rules_template" rows="3" required>{{ announcements.rules }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ad_template">Ad Template</label>
+                        <textarea class="form-control" id="ad_template" name="ad_template" rows="3" required>{{ announcements.ad }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Announcement Types -->
+            <div class="card">
+                <h2>
+                    Custom Announcement Types
+                    <span class="toggle-icon">▼</span>
+                </h2>
+                <div class="card-content">
+                    <div class="custom-type-editor">
+                        <div class="form-group">
+                            <div class="custom-type-input-row">
+                                <input type="text" class="form-control" id="newTypeName" placeholder="Type name (e.g., 'weather')">
+                                <textarea class="form-control" id="newTypeTemplate" placeholder="Announcement template..." rows="2"></textarea>
+                                <button type="button" class="btn btn-primary" id="addTypeBtn">Add Type</button>
+                            </div>
+                        </div>
+                        <div id="customTypesList" class="custom-types-list"></div>
+                        <textarea id="customTypes" name="customTypes" hidden>{{ custom_types }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Configuration -->
+            <div class="card">
+                <h2>
+                    Voice Configuration
+                    <span class="toggle-icon">▼</span>
+                </h2>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label class="form-label" for="voice_id">Voice ID</label>
+                        <input type="text" class="form-control" id="voice_id" name="voice_id" value="{{ tts.voice_id }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Configuration -->
+            <div class="card">
+                <h2>
+                    Database Configuration
+                    <span class="toggle-icon">▼</span>
+                </h2>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label class="form-label" for="db_server">Server</label>
+                        <input type="text" class="form-control" id="db_server" name="db_server" value="{{ database.server }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="db_name">Database Name</label>
+                        <input type="text" class="form-control" id="db_name" name="db_name" value="{{ database.database }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="db_username">Username</label>
+                        <input type="text" class="form-control" id="db_username" name="db_username" value="{{ database.username }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="db_password">Password</label>
+                        <input type="password" class="form-control" id="db_password" name="db_password" value="{{ database.password }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Configuration</button>
+        </form>
+    </div>
+
+    <!-- Main JS file located in the static directory -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
